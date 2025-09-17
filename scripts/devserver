@@ -1,0 +1,2 @@
+#!/bin/bash
+PYTHONPATH=/app/src fastapi dev --host 0.0.0.0 ./src/app/main.py

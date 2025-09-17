@@ -1,0 +1,28 @@
+services:
+
+  app:
+    build:
+      context: ..
+      dockerfile: ./.devcontainer/Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - ..:/app
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    tty: true
+    command: /bin/bash
+
+  db:
+    image: postgres:17.6-bookworm
+    ports:
+      - 5432:5432
+    volumes:
+      - pkb-notes-db-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+
+volumes:
+  pkb-notes-db-data:
