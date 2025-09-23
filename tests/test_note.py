@@ -51,7 +51,11 @@ async def test_create_note(
 
 
 @pytest.mark.asyncio
-async def test_create_note_with_new_tag(session: AsyncSession, client: AsyncClient, current_user_id: uuid.UUID):
+async def test_create_note_with_new_tag(
+    session: AsyncSession,
+    client: AsyncClient,
+    current_user_id: uuid.UUID,
+):
     """Should create a note and a tag, then bind the note with the tag."""
     tag_name = 'new tag'
 

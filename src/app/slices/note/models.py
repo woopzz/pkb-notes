@@ -4,10 +4,20 @@ from pydantic import Field
 from sqlalchemy import Column, ForeignKey, Table, types
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.models import AuditMixin, BaseSchema, BaseSQLModel, OwnerMixin, PrimaryUUIDMixin
+from app.core.models import (
+    AuditMixin,
+    BaseSchema,
+    BaseSQLModel,
+    OwnerMixin,
+    PrimaryUUIDMixin,
+)
 from app.slices.tag.models import Tag, TagPublic
 
-from .constants import NOTE_CONTENT_MAX_LENGTH, NOTE_NAME_MAX_LENGTH, NOTE_NAME_MIN_LENGTH
+from .constants import (
+    NOTE_CONTENT_MAX_LENGTH,
+    NOTE_NAME_MAX_LENGTH,
+    NOTE_NAME_MIN_LENGTH,
+)
 
 note_tag_m2m = Table(
     'note_tag_m2m',

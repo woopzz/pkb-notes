@@ -11,7 +11,11 @@ from .models import Tag, TagCreate, TagPublic, TagUpdate
 router = APIRouter()
 
 
-@router.get('/{id}', response_model=TagPublic, responses=generate_openapi_error_responses({403, 404}))
+@router.get(
+    '/{id}',
+    response_model=TagPublic,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def read_tag(id: uuid.UUID, session: SessionDep, current_user_id: CurrentUserIDDep):
     tag = await get_or_40x(session, current_user_id, id)
     return TagPublic.model_validate(tag)
@@ -25,7 +29,11 @@ async def create_tag(*, session: SessionDep, current_user_id: CurrentUserIDDep, 
     return TagPublic.model_validate(tag)
 
 
-@router.patch('/{id}', status_code=204, responses=generate_openapi_error_responses({403, 404}))
+@router.patch(
+    '/{id}',
+    status_code=204,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def update_tag(
     *,
     session: SessionDep,
@@ -45,7 +53,11 @@ async def update_tag(
     await session.commit()
 
 
-@router.delete('/{id}', status_code=204, responses=generate_openapi_error_responses({403, 404}))
+@router.delete(
+    '/{id}',
+    status_code=204,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def delete_tag(*, session: SessionDep, current_user_id: CurrentUserIDDep, id: uuid.UUID):
     tag = await get_or_40x(session, current_user_id, id)
     await session.delete(tag)
@@ -58,6 +70,9 @@ async def get_or_40x(session: SessionDep, current_user_id: CurrentUserIDDep, id:
         raise HTTPException(status_code=404, detail=f'Tag {id} was not found.')
 
     if tag.owner_id != current_user_id:
-        raise HTTPException(status_code=403, detail='You have access only to your tags. This one is not yours.')
+        raise HTTPException(
+            status_code=403,
+            detail='You have access only to your tags. This one is not yours.',
+        )
 
     return tag

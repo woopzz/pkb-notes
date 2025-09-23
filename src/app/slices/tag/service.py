@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.slices.tag.models import Tag
 
 
-async def get_or_create_tags(session: AsyncSession, owner_id: uuid.UUID, tag_names: list[str]) -> list[Tag]:
+async def get_or_create_tags(
+    session: AsyncSession,
+    owner_id: uuid.UUID,
+    tag_names: list[str],
+) -> list[Tag]:
     tags = []
     if not tag_names:
         return tags

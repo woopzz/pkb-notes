@@ -12,14 +12,23 @@ from .models import Note, NoteCreate, NotePublic, NoteUpdate
 router = APIRouter()
 
 
-@router.get('/{id}', response_model=NotePublic, responses=generate_openapi_error_responses({403, 404}))
+@router.get(
+    '/{id}',
+    response_model=NotePublic,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def read_note(id: uuid.UUID, session: SessionDep, current_user_id: CurrentUserIDDep):
     note = await get_or_40x(session, current_user_id, id)
     return NotePublic.model_validate(note)
 
 
 @router.post('/', response_model=NotePublic)
-async def create_note(*, session: SessionDep, current_user_id: CurrentUserIDDep, note_in: NoteCreate):
+async def create_note(
+    *,
+    session: SessionDep,
+    current_user_id: CurrentUserIDDep,
+    note_in: NoteCreate,
+):
     tags = await get_or_create_tags(session, current_user_id, note_in.tags)
     note = Note(
         name=note_in.name,
@@ -32,7 +41,11 @@ async def create_note(*, session: SessionDep, current_user_id: CurrentUserIDDep,
     return NotePublic.model_validate(note)
 
 
-@router.patch('/{id}', status_code=204, responses=generate_openapi_error_responses({403, 404}))
+@router.patch(
+    '/{id}',
+    status_code=204,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def update_note(
     *,
     session: SessionDep,
@@ -55,7 +68,11 @@ async def update_note(
     await session.commit()
 
 
-@router.delete('/{id}', status_code=204, responses=generate_openapi_error_responses({403, 404}))
+@router.delete(
+    '/{id}',
+    status_code=204,
+    responses=generate_openapi_error_responses({403, 404}),
+)
 async def delete_note(*, session: SessionDep, current_user_id: CurrentUserIDDep, id: uuid.UUID):
     note = await get_or_40x(session, current_user_id, id)
     await session.delete(note)
@@ -68,6 +85,9 @@ async def get_or_40x(session: SessionDep, current_user_id: CurrentUserIDDep, id:
         raise HTTPException(status_code=404, detail=f'Note {id} was not found.')
 
     if note.owner_id != current_user_id:
-        raise HTTPException(status_code=403, detail='You have access only to your notes. This one is not yours.')
+        raise HTTPException(
+            status_code=403,
+            detail='You have access only to your notes. This one is not yours.',
+        )
 
     return note

@@ -4,7 +4,13 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import types
-from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, declared_attr, mapped_column
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    MappedAsDataclass,
+    declared_attr,
+    mapped_column,
+)
 
 from app.core.db import metadata
 

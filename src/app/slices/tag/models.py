@@ -4,7 +4,13 @@ from pydantic import Field
 from sqlalchemy import UniqueConstraint, types
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.models import AuditMixin, BaseSchema, BaseSQLModel, OwnerMixin, PrimaryUUIDMixin
+from app.core.models import (
+    AuditMixin,
+    BaseSchema,
+    BaseSQLModel,
+    OwnerMixin,
+    PrimaryUUIDMixin,
+)
 
 from .constants import TAG_NAME_MAX_LENGTH, TAG_NAME_MIN_LENGTH
 
