@@ -1,4 +1,5 @@
 import multiprocessing
+import secrets
 from typing import Literal
 
 from pydantic import Field, PostgresDsn, computed_field
@@ -22,6 +23,8 @@ class Settings(BaseSettings):
     DB_ENGINE_POOL_SIZE: int = 20
     DB_ENGINE_POOL_RECYCLE: int = 60 * 60  # 1 hour
     DB_ENGINE_POOL_PRE_PING: bool = True
+
+    JWT_SECRET: str = secrets.token_urlsafe(32)
 
     @computed_field
     @property

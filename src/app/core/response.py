@@ -6,6 +6,7 @@ class BaseError(BaseModel):
 
 
 _STATUS_CODE_TO_DESCRIPTION = {
+    403: 'Forbidden',
     404: 'Not Found',
 }
 

@@ -1,3 +1,5 @@
+JWT_ALGORITHM = 'HS256'
+
 DB_NAMING_CONVENTION = {
     'ix': '%(column_0_label)s_idx',
     'uq': '%(table_name)s_%(column_0_name)s_key',

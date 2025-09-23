@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Callable
 
 import pytest
 from httpx import AsyncClient
@@ -7,29 +8,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.slices.tag.models import Tag, TagPublic
 
-from .utils import create_tag
-
 URL_TAGS = f'{settings.API_V1_STR}/tags/'
 
 
 @pytest.mark.asyncio
-async def test_create_tag(client: AsyncClient):
+async def test_create_tag(client: AsyncClient, current_user_id: uuid.UUID):
     name = 'test'
-    owner_id = uuid.uuid4()
 
-    response = await client.post(URL_TAGS, json={'name': name, 'owner_id': str(owner_id)})
+    response = await client.post(URL_TAGS, json={'name': name, 'owner_id': str(current_user_id)})
     assert response.status_code == 200
 
     data = response.json()
-    assert len(data) == 3
+    assert len(data) == 2
     assert uuid.UUID(data['id'])
     assert data['name'] == name
-    assert data['owner_id'] == str(owner_id)
 
 
 @pytest.mark.asyncio
-async def test_update_tag(session: AsyncSession, client: AsyncClient):
-    tag = await create_tag(session)
+async def test_update_tag(session: AsyncSession, client: AsyncClient, create_tag: Callable):
+    tag = await create_tag()
     new_name = 'new name'
 
     response = await client.patch(URL_TAGS + str(tag.id), json={'name': new_name})
@@ -40,8 +37,8 @@ async def test_update_tag(session: AsyncSession, client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_read_tag(session: AsyncSession, client: AsyncClient):
-    tag = await create_tag(session)
+async def test_read_tag(client: AsyncClient, create_tag: Callable):
+    tag = await create_tag()
 
     response = await client.get(URL_TAGS + str(tag.id))
     assert response.status_code == 200
@@ -58,8 +55,8 @@ async def test_read_missing_tag(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_delete_tag(session: AsyncSession, client: AsyncClient):
-    tag = await create_tag(session)
+async def test_delete_tag(session: AsyncSession, client: AsyncClient, create_tag: Callable):
+    tag = await create_tag()
     assert tag == await session.get(Tag, tag.id)
 
     response = await client.delete(URL_TAGS + str(tag.id))

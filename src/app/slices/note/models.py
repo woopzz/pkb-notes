@@ -5,7 +5,7 @@ from sqlalchemy import Column, ForeignKey, Table, types
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.models import AuditMixin, BaseSchema, BaseSQLModel, OwnerMixin, PrimaryUUIDMixin
-from app.slices.tag.models import Tag, TagOfNotePublic
+from app.slices.tag.models import Tag, TagPublic
 
 from .constants import NOTE_CONTENT_MAX_LENGTH, NOTE_NAME_MAX_LENGTH, NOTE_NAME_MIN_LENGTH
 
@@ -27,7 +27,6 @@ class NoteCreate(BaseSchema):
     name: str = Field(min_length=NOTE_NAME_MIN_LENGTH, max_length=NOTE_NAME_MAX_LENGTH)
     content: str = Field(max_length=NOTE_CONTENT_MAX_LENGTH)
     tags: list[str] = Field(default_factory=list)
-    owner_id: uuid.UUID
 
 
 class NoteUpdate(BaseSchema):
@@ -40,5 +39,4 @@ class NotePublic(BaseSchema):
     id: uuid.UUID
     name: str
     content: str
-    tags: list[TagOfNotePublic]
-    owner_id: uuid.UUID
+    tags: list[TagPublic]

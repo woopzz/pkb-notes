@@ -17,21 +17,12 @@ class Tag(PrimaryUUIDMixin, AuditMixin, OwnerMixin, BaseSQLModel):
 
 class TagCreate(BaseSchema):
     name: str = Field(min_length=TAG_NAME_MIN_LENGTH, max_length=TAG_NAME_MAX_LENGTH)
-    owner_id: uuid.UUID
 
 
 class TagUpdate(BaseSchema):
     name: str | None = Field(default=None)
 
 
-class TagPublicBase(BaseSchema):
+class TagPublic(BaseSchema):
     id: uuid.UUID
     name: str
-
-
-class TagPublic(TagPublicBase):
-    owner_id: uuid.UUID
-
-
-class TagOfNotePublic(TagPublicBase):
-    pass
