@@ -19,14 +19,3 @@ app.include_router(router, prefix=settings.API_V1_STR)
 @app.get('/healthcheck', include_in_schema=False)
 def healthcheck():
     return {'status': 'ok'}
-
-
-if __name__ == '__main__':
-    import uvicorn
-
-    uvicorn.run(
-        app='main:app',
-        host=settings.UVICORN_HOST,
-        port=settings.UVICORN_PORT,
-        workers=settings.UVICORN_WORKERS,
-    )

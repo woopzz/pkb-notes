@@ -30,4 +30,4 @@ COPY --from=builder --chown=$USER_UID:$USER_GID /app/.venv /app/.venv
 
 EXPOSE 8000
 
-CMD ["/app/.venv/bin/python", "-m", "app.main"]
+CMD ["/app/.venv/bin/python", "-m", "app.server"]
