@@ -11,6 +11,7 @@ router.include_router(tag_router, prefix='/tags', tags=['tags'])
 app = FastAPI(
     title='Notes API',
     summary='Manage notes and tags.',
+    version='1.0.0',
 )
 app.include_router(router, prefix=settings.API_V1_STR)
 
