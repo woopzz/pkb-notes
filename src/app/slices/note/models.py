@@ -30,7 +30,7 @@ note_tag_m2m = Table(
 class Note(PrimaryUUIDMixin, AuditMixin, OwnerMixin, BaseSQLModel):
     name: Mapped[str] = mapped_column(types.String(NOTE_NAME_MAX_LENGTH), nullable=False)
     content: Mapped[str] = mapped_column(types.String(NOTE_CONTENT_MAX_LENGTH), nullable=False)
-    tags: Mapped[list[Tag]] = relationship(secondary=note_tag_m2m, default_factory=list)
+    tags: Mapped[list[Tag]] = relationship(secondary=note_tag_m2m, lazy='joined', default_factory=list)
 
 
 class NoteCreate(BaseSchema):

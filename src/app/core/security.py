@@ -39,7 +39,7 @@ async def get_current_user_id(request: Request) -> uuid.UUID:
 
     ok, sub = parse_token(token)
     if ok:
-        return sub
+        return uuid.UUID(sub)
     else:
         raise HTTPException(status_code=403, detail='Invalid token.')
 
