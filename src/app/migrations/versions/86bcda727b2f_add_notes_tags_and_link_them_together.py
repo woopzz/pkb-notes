@@ -42,8 +42,8 @@ def upgrade() -> None:
     op.create_table('note_tag_m2m',
     sa.Column('note_id', sa.Uuid(), nullable=True),
     sa.Column('tag_id', sa.Uuid(), nullable=True),
-    sa.ForeignKeyConstraint(['note_id'], ['note.id'], name=op.f('note_tag_m2m_note_id_fkey')),
-    sa.ForeignKeyConstraint(['tag_id'], ['tag.id'], name=op.f('note_tag_m2m_tag_id_fkey'))
+    sa.ForeignKeyConstraint(['note_id'], ['note.id'], name=op.f('note_tag_m2m_note_id_fkey'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tag_id'], ['tag.id'], name=op.f('note_tag_m2m_tag_id_fkey'), ondelete='CASCADE')
     )
     # ### end Alembic commands ###
 
