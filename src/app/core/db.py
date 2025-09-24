@@ -16,7 +16,6 @@ engine = create_async_engine(
     pool_recycle=settings.DB_ENGINE_POOL_RECYCLE,
     pool_pre_ping=settings.DB_ENGINE_POOL_PRE_PING,
     echo=settings.DB_ENGINE_ECHO,
-    connect_args={'check_same_thread': False},
 )
 metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
 
