@@ -6,8 +6,15 @@ import uvicorn
 
 from app.core.config import settings
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def configure_logging():
+    logging.basicConfig(
+        level=settings.LOGGER_LEVEL.value,
+        format=settings.LOGGER_FORMAT,
+        datefmt=settings.LOGGER_DATEFMT,
+    )
 
 
 def setup_prometheus_multiproc_dir():
@@ -38,10 +45,14 @@ def setup_prometheus_multiproc_dir():
 
 
 if __name__ == '__main__':
+    configure_logging()
     setup_prometheus_multiproc_dir()
     uvicorn.run(
         app='app.main:app',
         host=settings.UVICORN_HOST,
         port=settings.UVICORN_PORT,
         workers=settings.UVICORN_WORKERS,
+        # Make uvicorn use the default logger configuration.
+        log_config=None,
+        log_level=None,
     )

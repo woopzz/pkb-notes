@@ -1,4 +1,5 @@
 import secrets
+from enum import Enum
 from typing import Literal
 
 from pydantic import PostgresDsn, computed_field
@@ -11,6 +12,15 @@ PATHES_TO_SKIP_METRICS_FOR = (
 )
 
 
+class LoggerLevel(str, Enum):
+    NOTSET = 'NOTSET'
+    DEBUG = 'DEBUG'
+    INFO = 'INFO'
+    WARNING = 'WARNING'
+    ERROR = 'ERROR'
+    CRITICAL = 'CRITICAL'
+
+
 class Settings(BaseSettings):
     APP_NAME: str = 'notes'
     API_V1_STR: str = '/api/v1'
@@ -19,6 +29,10 @@ class Settings(BaseSettings):
     UVICORN_HOST: str = '0.0.0.0'
     UVICORN_PORT: int = 8000
     UVICORN_WORKERS: int = 1
+
+    LOGGER_LEVEL: LoggerLevel = LoggerLevel.INFO
+    LOGGER_FORMAT: str = '%(asctime)s %(levelname)s %(name)s: %(message)s'
+    LOGGER_DATEFMT: str = '%Y-%m-%d %H:%M:%S'
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
