@@ -4,8 +4,15 @@ from typing import Literal
 from pydantic import PostgresDsn, computed_field
 from pydantic_settings import BaseSettings
 
+PATHES_TO_SKIP_METRICS_FOR = (
+    '/metrics',
+    '/docs',
+    '/openapi.json',
+)
+
 
 class Settings(BaseSettings):
+    APP_NAME: str = 'notes'
     API_V1_STR: str = '/api/v1'
     ISOLATION_LEVEL: str = 'REPEATABLE READ'
 
