@@ -1,8 +1,7 @@
-import multiprocessing
 import secrets
 from typing import Literal
 
-from pydantic import Field, PostgresDsn, computed_field
+from pydantic import PostgresDsn, computed_field
 from pydantic_settings import BaseSettings
 
 
@@ -12,7 +11,7 @@ class Settings(BaseSettings):
 
     UVICORN_HOST: str = '0.0.0.0'
     UVICORN_PORT: int = 8000
-    UVICORN_WORKERS: int = Field(default_factory=lambda: multiprocessing.cpu_count() * 2 + 1)
+    UVICORN_WORKERS: int = 1
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
