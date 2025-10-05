@@ -27,6 +27,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
 COPY --from=builder --chown=$USER_UID:$USER_GID /app/.venv /app/.venv
+COPY alembic.ini /app/alembic.ini
 
 EXPOSE 8000
 
