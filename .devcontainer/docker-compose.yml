@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: ./.devcontainer/Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - 8000:8000
     volumes:
@@ -11,7 +11,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ./.env
+      - ../.env.dev
     tty: true
     command: /bin/bash
 
@@ -22,7 +22,7 @@ services:
     volumes:
       - pkb-notes-db-data:/var/lib/postgresql/data
     env_file:
-      - ./.env
+      - ../.env.dev
 
 volumes:
   pkb-notes-db-data:

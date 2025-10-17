@@ -1,2 +1,2 @@
 #!/bin/bash
-uvx ruff check
+uvx ruff check $@

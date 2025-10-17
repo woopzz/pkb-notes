@@ -22,11 +22,11 @@ There are several helpful scripts:
 ./scripts/migrate
 
 # Run all tests.
-./scripts/test
+./scripts/test /app/tests
 
 # Run only the `test_read_note` test, capture the output, display SQL query info.
 DB_ENGINE_ECHO=1 ./scripts/test -rA ./tests/test_note.py::test_read_note
 
 # Run the Ruff linter.
-./scripts/lint
+./scripts/lint /app/src /app/tests
 ```

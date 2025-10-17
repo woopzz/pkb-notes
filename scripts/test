@@ -1,2 +1,2 @@
 #!/bin/bash
-PYTHONPATH=/app/src pytest $@
+uv run pytest $@
