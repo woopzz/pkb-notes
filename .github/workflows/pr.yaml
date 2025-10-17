@@ -1,0 +1,21 @@
+name: Pull request CI
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Build the test Docker image
+      run: docker build . --file Dockerfile.dev --tag pkb-notes-test
+
+    - name: Run lint
+      run: docker run --rm -v ./src:/app/src -v ./tests:/app/tests -v ./.ruff.toml:/app/.ruff.toml --env-file .env.dev pkb-notes-test uvx ruff check /app/src /app/tests
+
+    - name: Run tests
+      run: docker run --rm -v ./src:/app/src -v ./tests:/app/tests -v ./.pytest.ini:/app/.pytest.ini --env-file .env.dev pkb-notes-test uv run pytest /app/tests
