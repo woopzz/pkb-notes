@@ -1,0 +1,68 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+        - "[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+
+  branch:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.get_branch.outputs.branch }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current branch
+        id: get_branch
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branch=${raw##*/}
+          echo "branch=$branch" >> $GITHUB_OUTPUT
+          echo "Branch is $branch."
+
+  check:
+    runs-on: ubuntu-latest
+    needs: branch
+    if: ${{ needs.branch.outputs.branch == 'master' }}
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Build the test Docker image
+        run: docker build . --file Dockerfile.dev --tag pkb-notes-test
+
+      - name: Run lint
+        run: docker run --rm -v ./src:/app/src -v ./tests:/app/tests -v ./.ruff.toml:/app/.ruff.toml --env-file .env.dev pkb-notes-test uvx ruff check /app/src /app/tests
+
+      - name: Run tests
+        run: docker run --rm -v ./src:/app/src -v ./tests:/app/tests -v ./.pytest.ini:/app/.pytest.ini --env-file .env.dev pkb-notes-test uv run pytest /app/tests
+
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    needs: check
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Log in to the container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.github_token }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/pkb-notes:${{ github.ref_name }}
