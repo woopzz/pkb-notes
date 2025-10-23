@@ -2,9 +2,10 @@ import uuid
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.core.db import get_session
@@ -15,14 +16,41 @@ from app.slices.note.models import Note
 from app.slices.tag.models import Tag
 
 
+def get_engine(init=False):
+    kwargs = {
+        'echo': settings.DB_ENGINE_ECHO,
+        'poolclass': NullPool,
+    }
+    if init:
+        kwargs.update(
+            {
+                'url': str(settings.get_database_uri(dbname='postgres')),
+                'isolation_level': 'AUTOCOMMIT',  # We can't create a database within a transaction.
+            }
+        )
+    else:
+        kwargs.update(
+            {
+                'url': str(settings.get_database_uri()),
+                'isolation_level': settings.ISOLATION_LEVEL,
+            }
+        )
+    return create_async_engine(**kwargs)
+
+
 @pytest_asyncio.fixture(name='session')
 async def session_fixture():
-    engine = create_async_engine(
-        url='sqlite+aiosqlite://',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-        echo=settings.DB_ENGINE_ECHO,
-    )
+    engine = get_engine(init=True)
+    async with engine.begin() as conn:
+        result = await conn.execute(
+            text(f"SELECT 1 FROM pg_database WHERE datname = '{settings.POSTGRES_DB}'")
+        )
+        if result.scalar():
+            await conn.execute(text(f'DROP DATABASE {settings.POSTGRES_DB}'))
+
+        await conn.execute(text(f'CREATE DATABASE {settings.POSTGRES_DB}'))
+
+    engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(BaseSQLModel.metadata.create_all)
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-uv run pytest $@
+POSTGRES_DB=test uv run pytest $@

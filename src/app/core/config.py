@@ -2,7 +2,7 @@ import secrets
 from enum import Enum
 from typing import Literal
 
-from pydantic import PostgresDsn, computed_field
+from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings
 
 PATHES_TO_SKIP_METRICS_FOR = (
@@ -46,16 +46,17 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = secrets.token_urlsafe(32)
 
-    @computed_field
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+    def get_database_uri(self, dbname=None) -> PostgresDsn:
+        if not dbname:
+            dbname = self.POSTGRES_DB
+
         return PostgresDsn.build(
             scheme='postgresql+asyncpg',
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_HOST,
             port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
+            path=dbname,
         )
 
 

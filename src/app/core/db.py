@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.constants import DB_NAMING_CONVENTION
 
 engine = create_async_engine(
-    url=str(settings.SQLALCHEMY_DATABASE_URI),
+    url=str(settings.get_database_uri()),
     isolation_level=settings.ISOLATION_LEVEL,
     pool_size=settings.DB_ENGINE_POOL_SIZE,
     pool_recycle=settings.DB_ENGINE_POOL_RECYCLE,
