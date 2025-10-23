@@ -38,8 +38,8 @@ def get_engine(init=False):
     return create_async_engine(**kwargs)
 
 
-@pytest_asyncio.fixture(name='session')
-async def session_fixture():
+@pytest_asyncio.fixture(name='db_engine', scope='session')
+async def db_engine_fixture():
     engine = get_engine(init=True)
     async with engine.begin() as conn:
         result = await conn.execute(
@@ -55,13 +55,18 @@ async def session_fixture():
         await conn.run_sync(BaseSQLModel.metadata.create_all)
 
     try:
-        sm = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-        async with sm() as session:
-            yield session
+        yield engine
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(BaseSQLModel.metadata.drop_all)
         await engine.dispose()
+
+
+@pytest_asyncio.fixture(name='session')
+async def session_fixture(db_engine):
+    sm = sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
+    async with sm() as session:
+        yield session
 
 
 @pytest_asyncio.fixture(name='client')
