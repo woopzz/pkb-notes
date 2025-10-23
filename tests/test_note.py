@@ -186,6 +186,26 @@ async def test_read_missing_note(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_read_notes(
+    client: AsyncClient,
+    create_tag: Callable,
+    create_note: Callable,
+):
+    tag1 = await create_tag(name='tag1')
+    tag2 = await create_tag(name='tag2')
+
+    await create_note(content='note1')
+    note2 = await create_note(content='note2', tags=[tag1])
+    note3 = await create_note(content='note3', tags=[tag1, tag2])
+    await create_note(content='note4', tags=[tag2])
+
+    response = await client.get(URL_NOTES, params={'offset': 1, 'limit': 2})
+    assert response.status_code == 200
+    for note, data in zip((note3, note2), response.json()):
+        assert NotePublic.model_validate(note) == NotePublic.model_validate(data)
+
+
+@pytest.mark.asyncio
 async def test_delete_note(
     session: AsyncSession,
     client: AsyncClient,

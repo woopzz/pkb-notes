@@ -1,13 +1,15 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.core.db import SessionDep
 from app.core.response import generate_openapi_error_responses
 from app.core.security import CurrentUserIDDep
 from app.slices.tag.service import get_or_create_tags
 
-from .models import Note, NoteCreate, NotePublic, NoteUpdate
+from .models import Note, NoteCreate, NotePublic, NotesRead, NoteUpdate
+from .service import search_notes
 
 router = APIRouter()
 
@@ -20,6 +22,16 @@ router = APIRouter()
 async def read_note(id: uuid.UUID, session: SessionDep, current_user_id: CurrentUserIDDep):
     note = await get_or_40x(session, current_user_id, id)
     return NotePublic.model_validate(note)
+
+
+@router.get('/')
+async def read_notes(
+    *,
+    session: SessionDep,
+    current_user_id: CurrentUserIDDep,
+    params: Annotated[NotesRead, Query()],
+) -> list[NotePublic]:
+    return await search_notes(session, current_user_id, params.offset, params.limit)
 
 
 @router.post('/', response_model=NotePublic)

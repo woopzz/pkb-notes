@@ -17,6 +17,8 @@ from .constants import (
     NOTE_CONTENT_MAX_LENGTH,
     NOTE_NAME_MAX_LENGTH,
     NOTE_NAME_MIN_LENGTH,
+    NOTE_PAGE_LIMIT_MAX,
+    NOTE_PAGE_SIZE,
 )
 
 note_tag_m2m = Table(
@@ -35,6 +37,11 @@ class Note(PrimaryUUIDMixin, AuditMixin, OwnerMixin, BaseSQLModel):
         lazy='joined',
         default_factory=list,
     )
+
+
+class NotesRead(BaseSchema):
+    offset: int = Field(default=0, ge=0, le=NOTE_PAGE_LIMIT_MAX)
+    limit: int = Field(default=NOTE_PAGE_SIZE, ge=0)
 
 
 class NoteCreate(BaseSchema):
