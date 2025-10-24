@@ -9,15 +9,29 @@ dependencies = [
     "asyncpg>=0.30.0",
     "fastapi[standard]>=0.116.1",
     "passlib[bcrypt]>=1.7.4",
+    "pgvector>=0.4.1",
     "prometheus-client>=0.23.1",
     "pydantic-settings>=2.10.1",
     "pyjwt>=2.10.1",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.9.0",
 ]
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan>=2.1.0",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu" },
 ]
 
 [build-system]

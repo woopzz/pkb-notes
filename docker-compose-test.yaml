@@ -1,0 +1,33 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./.pytest.ini:/app/.pytest.ini
+      - ./.ruff.toml:/app/.ruff.toml
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=peon
+      - POSTGRES_PASSWORD=peon
+      - POSTGRES_DB=main
+      - JWT_SECRET=secret
+    tty: true
+    command: /bin/bash
+
+  db:
+    image: pgvector/pgvector:pg17-bookworm
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=peon
+      - POSTGRES_PASSWORD=peon
+      - POSTGRES_DB=main

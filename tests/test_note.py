@@ -1,12 +1,14 @@
 import uuid
 from collections.abc import Callable
 
+import numpy as np
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.slices.note.models import Note, NotePublic
+from app.slices.note.service import get_embedding
 from app.slices.tag.models import Tag, TagPublic
 
 URL_NOTES = f'{settings.API_V1_STR}/notes/'
@@ -108,6 +110,26 @@ async def test_create_note_with_new_tag_for_note_owner(
 
 
 @pytest.mark.asyncio
+async def test_create_note_embedding(
+    session: AsyncSession,
+    client: AsyncClient,
+    current_user_id: uuid.UUID,
+    st,
+):
+    create_values = {
+        'name': 'name',
+        'content': 'content',
+        'owner_id': str(current_user_id),
+    }
+    response = await client.post(URL_NOTES, json=create_values)
+    assert response.status_code == 200
+
+    data = response.json()
+    note = await session.get(Note, data['id'])
+    assert np.array_equal(note.embedding, st.encode('name. content'))
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     'update_values',
     (
@@ -141,6 +163,31 @@ async def test_update_note(
             assert set(x.name for x in note.tags) == set(value)
         else:
             assert getattr(note, column) == value
+
+
+@pytest.mark.asyncio
+async def test_update_note_embedding(
+    session: AsyncSession,
+    client: AsyncClient,
+    st,
+    create_note: Callable,
+):
+    note = await create_note(name='name', content='content')
+
+    new_name = 'My new name'
+    new_content = 'My new content'
+    new_embedding = get_embedding(st, new_name, new_content)
+
+    assert not np.array_equal(note.embedding, new_embedding)
+
+    response = await client.patch(
+        URL_NOTES + str(note.id),
+        json={'name': new_name, 'content': new_content},
+    )
+    assert response.status_code == 204
+
+    note = await session.get(Note, note.id)
+    assert np.array_equal(note.embedding, new_embedding)
 
 
 @pytest.mark.asyncio
@@ -186,7 +233,7 @@ async def test_read_missing_note(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_read_notes(
+async def test_read_notes_with_offset_and_limit(
     client: AsyncClient,
     create_tag: Callable,
     create_note: Callable,
@@ -203,6 +250,23 @@ async def test_read_notes(
     assert response.status_code == 200
     for note, data in zip((note3, note2), response.json()):
         assert NotePublic.model_validate(note) == NotePublic.model_validate(data)
+
+
+@pytest.mark.asyncio
+async def test_read_notes_semantic_search(client: AsyncClient, create_note: Callable):
+    for name, content in (
+        ('FastAPI Setup', 'How to configure FastAPI with PostgreSQL and asyncpg'),
+        ('Fuzzy Search', 'Implementing fuzzy search using pg_trgm extension in Postgres'),
+        ('Semantic Search', 'Using embeddings and pgvector for AI-powered search'),
+        ('Docker Deploy', 'How to deploy FastAPI and PostgreSQL with Docker Compose'),
+        ('Deep Learning Basics', 'Introduction to neural networks and machine learning concepts'),
+        ('AI Search Tips', 'How to make your search smarter with embeddings and language models'),
+    ):
+        await create_note(name=name, content=content)
+
+    response = await client.get(URL_NOTES, params={'q': 'fuzzy'})
+    assert response.status_code == 200
+    assert [x['name'] for x in response.json()] == ['Fuzzy Search', 'AI Search Tips']
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,9 @@
 import uuid
 
 import pytest_asyncio
+from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
+from sentence_transformers import SentenceTransformer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -12,7 +14,7 @@ from app.core.db import get_session
 from app.core.models import BaseSQLModel
 from app.core.security import get_current_user_id
 from app.main import app
-from app.slices.note.models import Note
+from app.slices.note.service import create as note_service_create
 from app.slices.tag.models import Tag
 
 
@@ -49,9 +51,11 @@ async def db_engine_fixture():
             await conn.execute(text(f'DROP DATABASE {settings.POSTGRES_DB}'))
 
         await conn.execute(text(f'CREATE DATABASE {settings.POSTGRES_DB}'))
+    await engine.dispose()
 
     engine = get_engine()
     async with engine.begin() as conn:
+        await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
         await conn.run_sync(BaseSQLModel.metadata.create_all)
 
     try:
@@ -69,15 +73,29 @@ async def session_fixture(db_engine):
         yield session
 
 
+@pytest_asyncio.fixture(name='lm', scope='session')
+async def lifespan_manager_fixture():
+    async with LifespanManager(app) as manager:
+        yield manager
+
+
+@pytest_asyncio.fixture(name='st', scope='session')
+async def sentence_transformer_fixture(lm) -> SentenceTransformer:
+    return lm._state['st']
+
+
 @pytest_asyncio.fixture(name='client')
-async def client_fixture(session: AsyncSession):
+async def client_fixture(lm: LifespanManager, session: AsyncSession):
     def get_session_override():
         return session
 
     app.dependency_overrides[get_session] = get_session_override
 
     try:
-        async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=lm.app),
+            base_url='http://test',
+        ) as client:
             yield client
     finally:
         app.dependency_overrides.clear()
@@ -99,14 +117,13 @@ async def current_user_id_fixture():
 
 
 @pytest_asyncio.fixture()
-def create_note(session: AsyncSession, current_user_id: uuid.UUID):
+def create_note(session: AsyncSession, current_user_id: uuid.UUID, st):
     async def create(**values):
         values.setdefault('name', 'test')
         values.setdefault('content', '')
         values.setdefault('owner_id', current_user_id)
-        note = Note(**values)
 
-        session.add(note)
+        note = note_service_create(session, st, **values)
         await session.commit()
         return note
 

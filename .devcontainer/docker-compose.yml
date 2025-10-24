@@ -16,7 +16,7 @@ services:
     command: /bin/bash
 
   db:
-    image: postgres:17.6-bookworm
+    image: pgvector/pgvector:pg17-bookworm
     ports:
       - 5432:5432
     volumes:

@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.core.db import SessionDep
 from app.core.response import generate_openapi_error_responses
@@ -9,7 +9,7 @@ from app.core.security import CurrentUserIDDep
 from app.slices.tag.service import get_or_create_tags
 
 from .models import Note, NoteCreate, NotePublic, NotesRead, NoteUpdate
-from .service import search_notes
+from .service import create, search_notes, update
 
 router = APIRouter()
 
@@ -27,28 +27,33 @@ async def read_note(id: uuid.UUID, session: SessionDep, current_user_id: Current
 @router.get('/')
 async def read_notes(
     *,
+    request: Request,
     session: SessionDep,
     current_user_id: CurrentUserIDDep,
     params: Annotated[NotesRead, Query()],
 ) -> list[NotePublic]:
-    return await search_notes(session, current_user_id, params.offset, params.limit)
+    st = request.state.st
+    return await search_notes(session, current_user_id, st, params.q, params.offset, params.limit)
 
 
 @router.post('/', response_model=NotePublic)
 async def create_note(
     *,
+    request: Request,
     session: SessionDep,
     current_user_id: CurrentUserIDDep,
     note_in: NoteCreate,
 ):
+    st = request.state.st
     tags = await get_or_create_tags(session, current_user_id, note_in.tags)
-    note = Note(
+    note = create(
+        session,
+        st,
         name=note_in.name,
         content=note_in.content,
         tags=tags,
         owner_id=current_user_id,
     )
-    session.add(note)
     await session.commit()
     return NotePublic.model_validate(note)
 
@@ -60,24 +65,22 @@ async def create_note(
 )
 async def update_note(
     *,
+    request: Request,
     session: SessionDep,
     current_user_id: CurrentUserIDDep,
     id: uuid.UUID,
     note_in: NoteUpdate,
 ):
     note = await get_or_40x(session, current_user_id, id)
-
     update_data = note_in.model_dump(exclude_unset=True)
-    if not update_data:
-        return
 
-    for column, value in update_data.items():
-        if column == 'tags':
-            note.tags = await get_or_create_tags(session, note.owner_id, value)
-        else:
-            setattr(note, column, value)
+    if 'tags' in update_data:
+        update_data['tags'] = await get_or_create_tags(session, note.owner_id, update_data['tags'])
 
-    await session.commit()
+    if update_data:
+        st = request.state.st
+        update(st, note, **update_data)
+        await session.commit()
 
 
 @router.delete(
